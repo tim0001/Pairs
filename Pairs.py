@@ -32,7 +32,7 @@ def match(row, col, number):
     global firstRow
     global firstCol
 
-    buttons[row][col].config(text=number, state='disabled', relief='flat')
+    buttons[row][col].config(text=number, relief='flat', command=lambda:None)
     if not first:
         firstNum = number
         firstRow = row
@@ -50,8 +50,10 @@ def match(row, col, number):
 def reset(firstRow, firstCol, firstNum, row, col, number):
     global score
 
-    buttons[firstRow][firstCol].config(text='', state='normal', relief='raised')
-    buttons[row][col].config(text='', state='normal', relief='raised')
+    buttons[firstRow][firstCol].config(text='', relief='raised', command=
+                                        lambda i=firstRow, j=firstCol, n=firstNum: match(i, j, n))
+    buttons[row][col].config(text='', relief='raised', command=
+                                        lambda i=row, j=col, n=number: match(i, j, n))
     score += 1
     tries.config(text=['Tries:', score])
 
@@ -90,7 +92,9 @@ def resetTiles():
     global size
     global main
     global score
+    global first
 
+    first = False
     main.destroy()
     genTiles()
     score =0
