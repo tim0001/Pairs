@@ -1,3 +1,4 @@
-### Match Pairs of Numbers
+### Pairs
 -----------------
-My first game made with Tkinter, Python.
+A game of matching pairs of numbers.  
+
