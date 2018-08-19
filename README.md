@@ -1,3 +1,3 @@
-### Game of Pairs
+### Match Pairs of Numbers
 -----------------
-A game of matching pairs of numbers. My first game made in Tkinter, Python.
+My first game made with Tkinter, Python.
