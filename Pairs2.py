@@ -4,7 +4,44 @@ from collections import defaultdict
 from threading import Timer
 
 
-class Tiles:
+class Menu:   # creates menu for selecting tile size and reseting tiles
+
+    def __init__(self, root):
+        self.tiles = None
+        self.root = root
+        self.options = [2, 4, 6, 8, 10, 12]
+        self.menu = tk.Frame(self.root, height=30)
+        self.menu.pack(side='top', fill=tk.X)
+        # creates option list
+        self.selected = tk.StringVar(self.menu)
+        self.selected.set(self.options[4])
+        self.optionList = tk.OptionMenu(self.menu, self.selected, *self.options, command=self.callback)
+        self.optionList.config(width=10, bg='white', activebackground='white')
+        self.optionList['menu'].config(bg='white')
+        self.optionList.grid(row=0, column=1)
+        # creates reset button
+        self.resetButton = tk.Button(self.menu, text='Reset', command=lambda: self.reset())
+        self.resetButton.grid(row=0, column=2, sticky=tk.W)
+        # creates option list text
+        self.menuLabel = tk.Label(self.menu, text='Size :')
+        self.menuLabel.grid(row=0, column=0)
+
+    # changes size to selected size
+    def callback(self, selection):
+        if self.tiles is not None:
+            self.tiles.size = selection
+
+    # resets tiles to selected size, clears score
+    def reset(self):
+        if self.tiles is not None:
+            self.tiles.first = False
+            self.tiles.main.destroy()
+            self.tiles.main = self.tiles.genTiles()
+            self.tiles.score = 0
+            self.tiles.tries.config(text=['Tries:', self.tiles.score])
+
+
+class Tiles:  # creates pair tiles and score board
 
     def __init__(self, root, size=10):
         self.root = root
@@ -15,9 +52,15 @@ class Tiles:
         self.first = False
         self.score = 0
         self.buttons = defaultdict(list)
+        # tiles
         self.main = self.genTiles()
+        # score board
+        self.board = tk.Frame(root, height=30)
+        self.board.pack(side='bottom', fill=tk.X)
+        self.tries = tk.Label(self.board, text=['Tries:', self.score], font='arial')
+        self.tries.pack()
 
-    # generates square array of tiles and returns its container
+    # generates size by size array of tiles, returns its frame
     def genTiles(self):
         self.buttons = defaultdict(list)
         main = tk.Frame(self.root)
@@ -80,49 +123,15 @@ class Tiles:
         self.buttons[row][col].config(text='', relief='raised', command=
                                         lambda i=row, j=col, n=number: self.match(i, j, n))
         self.score += 1
-        tries.config(text=['Tries:', self.score])
+        self.tries.config(text=['Tries:', self.score])
 
 
-# change size to one selected in menu
-def callback(selection):
-    tiles.size = selection
-
-
-# resets tiles to selected size, clears score
-def reset():
-    tiles.first = False
-    tiles.main.destroy()
-    tiles.main = tiles.genTiles()
-    tiles.score = 0
-    tries.config(text=['Tries:', tiles.score])
-
-
-# create window
+# creates window
 root = tk.Tk()
 root.title('Pairs')
 root.geometry('300x350')
 
-# create menu for selecting tile size and reseting tiles
-options = [2, 4, 6, 8, 10, 12]
-menu = tk.Frame(root, height=30)
-menu.pack(side='top', fill=tk.X)
-selected = tk.StringVar(menu)
-selected.set(options[4])
-optionList = tk.OptionMenu(menu, selected, *options, command=callback)
-optionList.config(width=10, bg='white', activebackground='white')
-optionList['menu'].config(bg='white')
-optionList.grid(row=0, column=1)
-resetButton = tk.Button(menu, text='Reset', command=lambda: reset())
-resetButton.grid(row=0, column=2, sticky=tk.W)
-menuLabel = tk.Label(menu, text='Size :')
-menuLabel.grid(row=0, column=0)
-
-tiles = Tiles(root, 10)
-
-# score board showing number of unsuccessful pairings
-board = tk.Frame(root, height=30)
-board.pack(side='bottom', fill=tk.X)
-tries = tk.Label(board, text=['Tries:', tiles.score], font='arial')
-tries.pack()
+menu = Menu(root)
+menu.tiles = Tiles(root, 10)
 
 root.mainloop()
