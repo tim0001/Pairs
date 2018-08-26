@@ -6,11 +6,11 @@ from threading import Timer
 
 class Menu:   # creates menu for selecting tile size and reseting tiles
 
-    def __init__(self, root):
+    def __init__(self, frame):
         self.tiles = None
-        self.root = root
+        self.frame = frame
         self.options = [2, 4, 6, 8, 10, 12]
-        self.menu = tk.Frame(self.root, height=30)
+        self.menu = tk.Frame(self.frame, height=30)
         self.menu.pack(side='top', fill=tk.X)
         # creates option list
         self.selected = tk.StringVar(self.menu)
@@ -43,8 +43,8 @@ class Menu:   # creates menu for selecting tile size and reseting tiles
 
 class Tiles:  # creates pair tiles and score board
 
-    def __init__(self, root, size=10):
-        self.root = root
+    def __init__(self, frame, size=10):
+        self.frame = frame
         self.size = size
         self.firstNum = 0
         self.firstRow = 0
@@ -63,7 +63,7 @@ class Tiles:  # creates pair tiles and score board
     # generates size by size array of tiles, returns its frame
     def genTiles(self):
         self.buttons = defaultdict(list)
-        main = tk.Frame(self.root)
+        main = tk.Frame(self.frame)
         main.pack(side='top', expand=True, fill=tk.BOTH)
         numList = self.scramble(self.genPairs(self.size * self.size / 2))
         c = 0
@@ -82,11 +82,7 @@ class Tiles:  # creates pair tiles and score board
     @staticmethod
     def genPairs(n):
         n = int(n)
-        pairs = []
-
-        for i in range(1, n + 1):
-            pairs.append(i)
-            pairs.append(i)
+        pairs = [i for i in range(1, n + 1) for j in (0, 1)]
         return pairs
 
     # scrambles list of pairs
