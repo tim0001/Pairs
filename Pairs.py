@@ -6,13 +6,18 @@ import random
 
 # generates list of 1-n number pairs
 def genPairs(n):
+    global mode
     n = int(n)
     pairs = []
-
-    for i in range(1, n+1):
-        pairs.append(i)
-        pairs.append(i)
-    return pairs
+    if mode == 'number':
+        pairs = [i for i in range(1, n + 1) for j in (0, 1)]
+        return pairs
+    elif mode == 'color':
+        for i in range(1, n + 1):
+            c = '#%02X%02X%02X' % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+            pairs.append(c)
+            pairs.append(c)
+        return pairs
 
 
 # scrambles list of pairs
@@ -26,34 +31,45 @@ def scramble(pairs):
 
 
 # reveals selected tiles and resets if numbers don't match
-def match(row, col, number):
+def match(row, col, x):
+    global mode
     global first
-    global firstNum
+    global firstVal
     global firstRow
     global firstCol
 
-    buttons[row][col].config(text=number, relief='flat', command=lambda:None)
+    if mode == 'number':
+        buttons[row][col].config(text=x, relief='flat', command=lambda: None)
+    elif mode == 'color':
+        buttons[row][col].config(bg=x, relief='flat', command=lambda: None)
     if not first:
-        firstNum = number
+        firstVal = x
         firstRow = row
         firstCol = col
         first = True
-    elif number == firstNum:
+    elif x == firstVal:
         first = False
     else:
-        t = Timer(0.5, reset, [firstRow, firstCol, firstNum, row, col, number])
+        t = Timer(0.5, reset, [firstRow, firstCol, firstVal, row, col, x])
         t.start()
         first = False
 
 
 # resets tiles and increases tries by 1
-def reset(firstRow, firstCol, firstNum, row, col, number):
+def reset(firstRow, firstCol, firstVal, row, col, x):
     global score
+    global mode
 
-    buttons[firstRow][firstCol].config(text='', relief='raised', command=
-                                        lambda i=firstRow, j=firstCol, n=firstNum: match(i, j, n))
-    buttons[row][col].config(text='', relief='raised', command=
-                                        lambda i=row, j=col, n=number: match(i, j, n))
+    if mode == 'number':
+        buttons[firstRow][firstCol].config(text='', relief='raised', command=
+                                            lambda i=firstRow, j=firstCol, n=firstVal: match(i, j, n))
+        buttons[row][col].config(text='', relief='raised', command=
+                                            lambda i=row, j=col, n=x: match(i, j, n))
+    elif mode == 'color':
+        buttons[firstRow][firstCol].config(bg='SystemButtonFace', relief='raised', command=
+                                            lambda i=firstRow, j=firstCol, n=firstVal: match(i, j, n))
+        buttons[row][col].config(bg='SystemButtonFace', relief='raised', command=
+                                            lambda i=row, j=col, n=x: match(i, j, n))
     score += 1
     tries.config(text=['Tries:', score])
 
@@ -66,11 +82,11 @@ def genTiles():
     buttons = defaultdict(list)
     main = Frame(root)
     main.pack(side='top', expand=True, fill=BOTH)
-    numList = scramble(genPairs(size*size/2))
+    value = scramble(genPairs(size*size/2))
     c = 0
     for i in range(size):
         for j in range(size):
-            btn = Button(main, command=lambda row=i, col=j, number=numList[c]: match(row, col, number),
+            btn = Button(main, command=lambda row=i, col=j, x=value[c]: match(row, col, x),
                          height=1, width=1)
             buttons[i].append(btn)
             btn.grid(row=i, column=j, sticky="wens")
@@ -80,7 +96,7 @@ def genTiles():
     return main
 
 
-# change size to one selected in menu
+# change size to selected
 def callback(selection):
     global size
 
@@ -89,20 +105,22 @@ def callback(selection):
 
 # resets tiles to selected size, clears score
 def resetTiles():
-    global size
     global main
     global score
     global first
+    global mode
 
     first = False
     main.destroy()
+    mode = choice.get()
     genTiles()
-    score =0
+    score = 0
     tries.config(text=['Tries:', score])
 
 
 # Global variables
-firstNum = 0
+mode = 'number'
+firstVal = 0
 firstRow = 0
 firstCol = 0
 first = False
@@ -115,22 +133,41 @@ buttons = defaultdict(list)
 # creating window
 root = Tk()
 root.title('Pairs')
-root.geometry('300x350')
+root.geometry('450x450')
 
 # create menu for selecting tile size and reseting tiles
-options = [2, 4, 6, 8, 10, 12]
 menu = Frame(root, height=30)
 menu.pack(side='top', fill=X)
-selected = StringVar(menu)
-selected.set(options[4])
-optionList = OptionMenu(menu, selected, *options, command=callback)
-optionList.config(width=10, bg='white', activebackground='white')
-optionList['menu'].config(bg='white')
-optionList.grid(row=0, column=1)
+
+sizeLabel = Label(menu, text='Size :')
+sizeLabel.grid(row=0, column=0)
+
+options = [2, 4, 6, 8, 10, 12]
+number = StringVar(menu)
+number.set(options[4])
+sizeList = OptionMenu(menu, number, *options, command=callback)
+sizeList.config(width=10, bg='white', activebackground='white')
+sizeList['menu'].config(bg='white')
+sizeList.grid(row=0, column=1, sticky='w')
+menu.columnconfigure(1, weight=2)
+
+modeLabel = Label(menu, text='Mode :')
+modeLabel.grid(row=0, column=2)
+
+
+tileMode = ['number', 'color']
+choice = StringVar(menu)
+choice.set(tileMode[0])
+ModeList = OptionMenu(menu, choice, *tileMode)
+ModeList.config(width=10, bg='white', activebackground='white')
+ModeList['menu'].config(bg='white')
+ModeList.grid(row=0, column=3, sticky='w')
+menu.columnconfigure(3, weight=2)
+
 resetButton = Button(menu, text='Reset', command=lambda: resetTiles())
-resetButton.grid(row=0, column=2, sticky=W)
-menuLabel = Label(menu, text='Size :')
-menuLabel.grid(row=0, column=0)
+resetButton.grid(row=0, column=4, sticky='wens')
+menu.columnconfigure(4, weight=1)
+
 
 # creates tiles
 genTiles()
