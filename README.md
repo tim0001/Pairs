@@ -2,7 +2,7 @@
 -----------------
 Python 3.7
 
-Libraries:
+Dependencies:
 * tkinter
 * collections
 * threading
