@@ -2,7 +2,7 @@
 -----------------
 Python 3.7
 
-Dependencies:
+Standard Library:
 * tkinter
 * collections
 * threading
